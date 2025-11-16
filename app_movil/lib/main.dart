@@ -1,3 +1,5 @@
+import 'package:app_movil/config/theme.dart';
+import 'package:app_movil/screens/home_screen.dart';
 import 'package:app_movil/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -12,11 +14,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'App Movil',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: LoginScreen(),
+      theme: AppTheme.theme,
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
     );
   }
 }

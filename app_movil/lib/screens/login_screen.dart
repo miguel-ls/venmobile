@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -16,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _captchaController = TextEditingController();
   bool _isLoading = false;
   String _captcha = '';
-  String? _sessionCookie; // Variable para guardar la cookie de sesión
+  String? _sessionCookie;
 
   @override
   void initState() {
@@ -24,11 +26,9 @@ class _LoginScreenState extends State<LoginScreen> {
     _fetchCaptcha();
   }
 
-  // Función para extraer la cookie de la cabecera
   void _updateCookie(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
     if (rawCookie != null) {
-      // Extraemos la parte relevante de la cookie (antes del primer ';')
       int index = rawCookie.indexOf(';');
       _sessionCookie = (index == -1) ? rawCookie : rawCookie.substring(0, index);
     }
@@ -38,9 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/captcha'));
       if (response.statusCode == 200) {
-        // Guardamos la cookie de la respuesta
         _updateCookie(response);
-        
         final responseData = json.decode(response.body);
         setState(() {
           _captcha = responseData['captcha'];
@@ -56,8 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     final url = Uri.parse('${ApiConfig.baseUrl}/login');
-    
-    // Preparamos las cabeceras para enviar la cookie
     final headers = {
       'Content-Type': 'application/json',
       if (_sessionCookie != null) 'Cookie': _sessionCookie!,
@@ -66,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.post(
         url,
-        headers: headers, // Enviamos las cabeceras con la cookie
+        headers: headers,
         body: json.encode({
           'username': _usernameController.text,
           'password': _passwordController.text,
@@ -74,15 +70,13 @@ class _LoginScreenState extends State<LoginScreen> {
         }),
       );
 
-      // La sesión puede actualizarse, así que guardamos la cookie de nuevo
       _updateCookie(response);
 
       final responseData = json.decode(response.body);
       if (response.statusCode == 200 && responseData['status'] == 'success') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
       } else {
         _showErrorDialog(responseData['message'] ?? 'Error desconocido');
-        // Si el login falla, obtenemos un nuevo CAPTCHA (y una nueva sesión)
         _fetchCaptcha();
         _captchaController.clear();
       }
@@ -97,61 +91,89 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Error'),
+        title: const Text('Error'),
         content: Text(message),
-        actions: <Widget>[TextButton(child: Text('Ok'), onPressed: () => Navigator.of(ctx).pop())],
+        actions: <Widget>[TextButton(child: const Text('Ok'), onPressed: () => Navigator.of(ctx).pop())],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // El resto del método build se mantiene igual
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TextFormField(
-                controller: _usernameController,
-                decoration: InputDecoration(labelText: 'Username'),
-                validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-              ),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _captchaController,
-                      decoration: InputDecoration(labelText: 'CAPTCHA'),
-                      validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  // Aquí irá el logo
+                  const FlutterLogo(size: 100.0),
+                  const SizedBox(height: 48.0),
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Usuario',
+                      prefixIcon: Icon(Icons.person_outline),
                     ),
+                    validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
                   ),
-                  SizedBox(width: 10),
-                  Container(
-                    width: 100,
-                    height: 50,
-                    color: Colors.grey[300],
-                    child: Center(child: Text(_captcha.isEmpty ? '...' : _captcha, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Contraseña',
+                      prefixIcon: Icon(Icons.lock_outline),
+                    ),
+                    obscureText: true,
+                    validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
                   ),
-                  IconButton(
-                    icon: Icon(Icons.refresh),
-                    onPressed: _fetchCaptcha,
+                  const SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _captchaController,
+                          decoration: const InputDecoration(
+                            labelText: 'CAPTCHA',
+                            prefixIcon: Icon(Icons.vpn_key),
+                          ),
+                          validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Text(
+                          _captcha.isEmpty ? '...' : _captcha,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: _fetchCaptcha,
+                        tooltip: 'Refrescar CAPTCHA',
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 24.0),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          onPressed: _login,
+                          child: const Text('Iniciar Sesión'),
+                        ),
                 ],
               ),
-              SizedBox(height: 20),
-              _isLoading ? CircularProgressIndicator() : ElevatedButton(onPressed: _login, child: Text('Login')),
-            ],
+            ),
           ),
         ),
       ),
