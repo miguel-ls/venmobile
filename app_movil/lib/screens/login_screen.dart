@@ -16,15 +16,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _captchaController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
-  String? _captchaQuestion;
 
   @override
   void initState() {
     super.initState();
-    _fetchCaptcha();
   }
 
   void _updateCookie(http.Response response) {
@@ -32,27 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (rawCookie != null) {
       int index = rawCookie.indexOf(';');
       _authService.setSessionCookie((index == -1) ? rawCookie : rawCookie.substring(0, index));
-    }
-  }
-
-  Future<void> _fetchCaptcha() async {
-    try {
-      final headers = {
-        if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
-      };
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/captcha'),
-        headers: headers,
-      );
-      if (response.statusCode == 200) {
-        _updateCookie(response);
-        final data = json.decode(response.body);
-        setState(() {
-          _captchaQuestion = data['question'];
-        });
-      }
-    } catch (e) {
-      _showErrorDialog('No se pudo cargar el CAPTCHA. Revisa la conexión con el servidor.');
     }
   }
 
@@ -73,7 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
         body: json.encode({
           'username': _usernameController.text,
           'password': _passwordController.text,
-          'captcha': _captchaController.text,
         }),
       );
 
@@ -84,8 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
       } else {
         _showErrorDialog(responseData['message'] ?? 'Error desconocido');
-        _fetchCaptcha();
-        _captchaController.clear();
       }
     } catch (e) {
       _showErrorDialog('Error de conexión.');
@@ -137,43 +110,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     obscureText: true,
                     validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-                  ),
-                  const SizedBox(height: 16.0),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _captchaController,
-                          decoration: const InputDecoration(
-                            labelText: 'CAPTCHA',
-                            prefixIcon: Icon(Icons.vpn_key),
-                          ),
-                          validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Container(
-                        width: 120,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: Center(
-                          child: _captchaQuestion != null
-                              ? Text(
-                                  _captchaQuestion!,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                )
-                              : const CircularProgressIndicator(),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: _fetchCaptcha,
-                        tooltip: 'Refrescar CAPTCHA',
-                      ),
-                    ],
                   ),
                   const SizedBox(height: 24.0),
                   _isLoading
