@@ -11,8 +11,7 @@ class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key, this.profile});
 
   @override
-  _ProfileEditScreenState createState() => _ProfileEditScree
-nState();
+  _ProfileEditScreenState createState() => _ProfileEditScreenState();
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
