@@ -3,3 +3,6 @@
 
 # Ignorar el directorio de dependencias de Composer.
 vendor/
+
+# Ignorar el archivo de configuración con el token de la API.
+config.php
