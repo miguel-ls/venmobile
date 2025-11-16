@@ -41,7 +41,26 @@ function handle_captcha($method) {
     if ($method == 'GET') {
         $captcha_code = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 5);
         $_SESSION['captcha'] = $captcha_code;
-        echo json_encode(['captcha' => $captcha_code]);
+
+        $image = imagecreatetruecolor(120, 40);
+        $bg_color = imagecolorallocate($image, 230, 230, 230);
+        $text_color = imagecolorallocate($image, 50, 50, 50);
+        $noise_color = imagecolorallocate($image, 150, 150, 150);
+        imagefilledrectangle($image, 0, 0, 120, 40, $bg_color);
+
+        for ($i = 0; $i < 5; $i++) {
+            imageline($image, 0, rand() % 40, 120, rand() % 40, $noise_color);
+        }
+
+        for ($i = 0; $i < 500; $i++) {
+            imagesetpixel($image, rand() % 120, rand() % 40, $noise_color);
+        }
+
+        imagestring($image, 5, 35, 12, $captcha_code, $text_color);
+
+        header('Content-Type: image/png');
+        imagepng($image);
+        imagedestroy($image);
     } else {
         http_response_code(405);
     }
