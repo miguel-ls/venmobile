@@ -22,7 +22,6 @@ try {
     $input = json_decode(file_get_contents('php://input'), true);
 
     switch ($resource) {
-        case 'captcha': handle_captcha($method); break;
         case 'login': handle_login($pdo, $method, $input); break;
         case 'users': handle_users($pdo, $method, $id, $input); break;
         case 'profiles': handle_profiles($pdo, $method, $id, $input); break;
@@ -42,27 +41,9 @@ function is_authenticated() {
     return isset($_SESSION['user_id']);
 }
 
-function handle_captcha($method) {
-    if ($method == 'GET') {
-        $num1 = rand(1, 9);
-        $num2 = rand(1, 9);
-        $_SESSION['captcha'] = $num1 + $num2;
-
-        header('Content-Type: application/json');
-        echo json_encode(['question' => "$num1 + $num2 = ?"]);
-    } else {
-        http_response_code(405);
-    }
-}
-
 function handle_login($pdo, $method, $input) {
     header("Content-Type: application/json; charset=UTF-8");
     if ($method == 'POST') {
-        if (!isset($input['captcha'], $_SESSION['captcha']) || strtolower($input['captcha']) != strtolower($_SESSION['captcha'])) {
-            http_response_code(401);
-            echo json_encode(['status' => 'error', 'message' => 'CAPTCHA incorrecto']);
-            return;
-        }
         $stmt = $pdo->prepare("CALL sp_get_user_by_username(?)");
         $stmt->execute([$input['username']]);
         $user = $stmt->fetch();
