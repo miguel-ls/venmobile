@@ -3,7 +3,6 @@ require_once 'db.php';
 
 session_start();
 
-header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
@@ -26,9 +25,14 @@ try {
         case 'login': handle_login($pdo, $method, $input); break;
         case 'users': handle_users($pdo, $method, $id, $input); break;
         case 'profiles': handle_profiles($pdo, $method, $id, $input); break;
-        default: http_response_code(404); echo json_encode(['message' => 'Not Found']); break;
+        default:
+            header("Content-Type: application/json; charset=UTF-8");
+            http_response_code(404);
+            echo json_encode(['message' => 'Not Found']);
+            break;
     }
 } catch (Exception $e) {
+    header("Content-Type: application/json; charset=UTF-8");
     http_response_code(500);
     echo json_encode(['message' => 'Server Error: ' . $e->getMessage()]);
 }
@@ -67,6 +71,7 @@ function handle_captcha($method) {
 }
 
 function handle_login($pdo, $method, $input) {
+    header("Content-Type: application/json; charset=UTF-8");
     if ($method == 'POST') {
         if (!isset($input['captcha'], $_SESSION['captcha']) || strtolower($input['captcha']) != strtolower($_SESSION['captcha'])) {
             http_response_code(401);
@@ -90,6 +95,7 @@ function handle_login($pdo, $method, $input) {
 }
 
 function handle_users($pdo, $method, $id, $input) {
+    header("Content-Type: application/json; charset=UTF-8");
     if (!is_authenticated()) {
         http_response_code(401);
         echo json_encode(['message' => 'Unauthorized']);
@@ -125,6 +131,7 @@ function handle_users($pdo, $method, $id, $input) {
 }
 
 function handle_profiles($pdo, $method, $id, $input) {
+    header("Content-Type: application/json; charset=UTF-8");
     if (!is_authenticated()) {
         http_response_code(401);
         echo json_encode(['message' => 'Unauthorized']);
