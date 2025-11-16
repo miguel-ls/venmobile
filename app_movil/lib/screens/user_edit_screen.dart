@@ -91,63 +91,104 @@ class _UserEditScreenState extends State<UserEditScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Nombre de usuario'),
-                validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-              ),
-              const SizedBox(height: 16.0),
-              if (widget.user == null)
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Contraseña'),
-                  obscureText: true,
-                  validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
-                ),
-              const SizedBox(height: 16.0),
-              FutureBuilder<List<Profile>>(
-                future: _profilesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Text('No se encontraron perfiles.');
-                  }
-                  return DropdownButtonFormField<int>(
-                    value: _selectedProfileId,
-                    items: snapshot.data!.map((profile) {
-                      return DropdownMenuItem<int>(
-                        value: profile.id,
-                        child: Text(profile.name),
+        child: Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nombre de usuario',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
+                  ),
+                  const SizedBox(height: 16.0),
+                  if (widget.user == null)
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                      ),
+                      obscureText: true,
+                      validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
+                    ),
+                  const SizedBox(height: 16.0),
+                  FutureBuilder<List<Profile>>(
+                    future: _profilesFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Text('No se encontraron perfiles.');
+                      }
+                      return DropdownButtonFormField<int>(
+                        value: _selectedProfileId,
+                        items: snapshot.data!.map((profile) {
+                          return DropdownMenuItem<int>(
+                            value: profile.id,
+                            child: Text(profile.name),
+                          );
+                        }).toList(),
+                        onChanged: (value) => setState(() => _selectedProfileId = value),
+                        decoration: InputDecoration(
+                          labelText: 'Perfil',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                        ),
+                        validator: (value) => value == null ? 'Campo requerido' : null,
                       );
-                    }).toList(),
-                    onChanged: (value) => setState(() => _selectedProfileId = value),
-                    decoration: const InputDecoration(labelText: 'Perfil'),
-                    validator: (value) => value == null ? 'Campo requerido' : null,
-                  );
-                },
+                    },
+                  ),
+                  const SizedBox(height: 24.0),
+                  ElevatedButton(
+                    onPressed: _saveUser,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text('Guardar'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24.0),
-              ElevatedButton(
-                onPressed: _saveUser,
-                child: const Text('Guardar'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
