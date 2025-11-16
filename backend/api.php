@@ -26,6 +26,8 @@ try {
         case 'login': handle_login($pdo, $method, $input); break;
         case 'users': handle_users($pdo, $method, $id, $input); break;
         case 'profiles': handle_profiles($pdo, $method, $id, $input); break;
+        case 'tipo_cambio': handle_tipo_cambio($pdo, $method, $id, $input); break;
+        case 'sunat_tipo_cambio': handle_sunat_tipo_cambio($method); break;
         default:
             header("Content-Type: application/json; charset=UTF-8");
             http_response_code(404);
@@ -147,6 +149,75 @@ function handle_profiles($pdo, $method, $id, $input) {
         default:
             http_response_code(405);
             break;
+    }
+}
+
+function handle_tipo_cambio($pdo, $method, $id, $input) {
+    header("Content-Type: application/json; charset=UTF-8");
+    if (!is_authenticated()) {
+        http_response_code(401);
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
+
+    switch ($method) {
+        case 'GET':
+            if ($id) {
+                $stmt = $pdo->prepare("SELECT * FROM tipo_cambio WHERE id = ?");
+                $stmt->execute([$id]);
+                echo json_encode($stmt->fetch());
+            } else {
+                $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
+                $month = isset($_GET['month']) ? $_GET['month'] : date('m');
+                $stmt = $pdo->prepare("SELECT * FROM tipo_cambio WHERE YEAR(fecha) = ? AND MONTH(fecha) = ?");
+                $stmt->execute([$year, $month]);
+                echo json_encode($stmt->fetchAll());
+            }
+            break;
+        case 'POST':
+            $stmt = $pdo->prepare("INSERT INTO tipo_cambio (fecha, compra, venta, moneda) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$input['fecha'], $input['compra'], $input['venta'], $input['moneda']]);
+            $input['id'] = $pdo->lastInsertId();
+            http_response_code(201);
+            echo json_encode($input);
+            break;
+        case 'PUT':
+            $stmt = $pdo->prepare("UPDATE tipo_cambio SET fecha = ?, compra = ?, venta = ?, moneda = ? WHERE id = ?");
+            $stmt->execute([$input['fecha'], $input['compra'], $input['venta'], $input['moneda'], $id]);
+            echo json_encode(['status' => 'success']);
+            break;
+        case 'DELETE':
+            $stmt = $pdo->prepare("DELETE FROM tipo_cambio WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['status' => 'success']);
+            break;
+        default:
+            http_response_code(405);
+            break;
+    }
+}
+
+function handle_sunat_tipo_cambio($method) {
+    if ($method == 'GET') {
+        $fecha = isset($_GET['fecha']) ? $_GET['fecha'] : date('Y-m-d');
+        require_once 'config.php';
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api.apis.net.pe/v1/tipo-cambio-sunat?fecha=$fecha");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . SUNAT_API_TOKEN
+        ));
+
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        header("Content-Type: application/json; charset=UTF-8");
+        http_response_code($httpcode);
+        echo $response;
+    } else {
+        http_response_code(405);
     }
 }
 ?>

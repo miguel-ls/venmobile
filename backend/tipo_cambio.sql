@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS tipo_cambio (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATETIME NOT NULL,
+    compra DECIMAL(14,3) NOT NULL,
+    venta DECIMAL(14,3) NOT NULL,
+    moneda CHAR(3) NOT NULL
+);
