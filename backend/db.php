@@ -9,7 +9,7 @@
 function getDbConnection() {
     // Carga las credenciales desde variables de entorno.
     // Esto es mucho más seguro que tenerlas directamente en el código.
-    $host = getenv('DB_HOST') ?: '127.0.0.1';
+    $host = getenv('DB_HOST') ?: '172.16.50.73';
     $db   = getenv('DB_NAME') ?: 'app_movil_db';
     $user = getenv('DB_USER') ?: 'miguel';
     $pass = getenv('DB_PASS') ?: 'Miguel123!';
