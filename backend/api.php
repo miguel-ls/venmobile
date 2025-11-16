@@ -163,31 +163,30 @@ function handle_tipo_cambio($pdo, $method, $id, $input) {
     switch ($method) {
         case 'GET':
             if ($id) {
-                $stmt = $pdo->prepare("SELECT * FROM tipo_cambio WHERE id = ?");
+                $stmt = $pdo->prepare("CALL sp_get_tipo_cambio_by_id(?)");
                 $stmt->execute([$id]);
                 echo json_encode($stmt->fetch());
             } else {
                 $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
                 $month = isset($_GET['month']) ? $_GET['month'] : date('m');
-                $stmt = $pdo->prepare("SELECT * FROM tipo_cambio WHERE YEAR(fecha) = ? AND MONTH(fecha) = ?");
+                $stmt = $pdo->prepare("CALL sp_get_tipo_cambio_by_year_month(?, ?)");
                 $stmt->execute([$year, $month]);
                 echo json_encode($stmt->fetchAll());
             }
             break;
         case 'POST':
-            $stmt = $pdo->prepare("INSERT INTO tipo_cambio (fecha, compra, venta, moneda) VALUES (?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_create_tipo_cambio(?, ?, ?, ?)");
             $stmt->execute([$input['fecha'], $input['compra'], $input['venta'], $input['moneda']]);
-            $input['id'] = $pdo->lastInsertId();
             http_response_code(201);
-            echo json_encode($input);
+            echo json_encode($stmt->fetch());
             break;
         case 'PUT':
-            $stmt = $pdo->prepare("UPDATE tipo_cambio SET fecha = ?, compra = ?, venta = ?, moneda = ? WHERE id = ?");
-            $stmt->execute([$input['fecha'], $input['compra'], $input['venta'], $input['moneda'], $id]);
+            $stmt = $pdo->prepare("CALL sp_update_tipo_cambio(?, ?, ?, ?, ?)");
+            $stmt->execute([$id, $input['fecha'], $input['compra'], $input['venta'], $input['moneda']]);
             echo json_encode(['status' => 'success']);
             break;
         case 'DELETE':
-            $stmt = $pdo->prepare("DELETE FROM tipo_cambio WHERE id = ?");
+            $stmt = $pdo->prepare("CALL sp_delete_tipo_cambio(?)");
             $stmt->execute([$id]);
             echo json_encode(['status' => 'success']);
             break;
