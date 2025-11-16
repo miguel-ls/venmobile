@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:app_movil/models/tipo_cambio_model.dart';
-import 'package:app_movil/config/app_config.dart';
+import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/services/auth_service.dart';
 import 'package:app_movil/services/tipo_cambio_service.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +45,7 @@ class _TipoCambioFormScreenState extends State<TipoCambioFormScreen> {
 
   void _fetchFromSunat() async {
     final fecha = _fechaController.text;
-    final url = '${AppConfig.baseUrl}/api.php/sunat_tipo_cambio?fecha=$fecha';
+    final url = '${ApiConfig.baseUrl}/sunat_tipo_cambio?fecha=$fecha';
 
     try {
       final response = await http.get(

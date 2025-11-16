@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:app_movil/config/app_config.dart';
+import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/models/tipo_cambio_model.dart';
 import 'package:app_movil/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 
 class TipoCambioService {
-  final String _baseUrl = '${AppConfig.baseUrl}/api.php/tipo_cambio';
+  final String _baseUrl = '${ApiConfig.baseUrl}/tipo_cambio';
   final _authService = AuthService();
 
   Future<List<TipoCambio>> getTipoCambios({required String year, required String month}) async {
