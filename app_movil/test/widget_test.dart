@@ -7,15 +7,39 @@
 import 'package:app_movil/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:mockito/mockito.dart';
+
+// Mock http client
+class MockClient extends Mock implements http.Client {}
 
 void main() {
-  testWidgets('Login screen smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+  group('LoginScreen', () {
+    testWidgets('shows loading indicator and then displays captcha question',
+        (WidgetTester tester) async {
+      final client = MockClient();
 
-    // Verify that the Login screen is displayed.
-    expect(find.widgetWithText(TextFormField, 'Usuario'), findsOneWidget);
-    expect(find.widgetWithText(TextFormField, 'Contraseña'), findsOneWidget);
-    expect(find.widgetWithText(ElevatedButton, 'Iniciar Sesión'), findsOneWidget);
+      // Mock the API call to return a fake captcha question
+      when(client.get(Uri.parse('http://localhost/api.php/captcha')))
+          .thenAnswer((_) async => http.Response(
+                '{"question":"2 + 3 = ?"}',
+                200,
+                headers: {
+                  'content-type': 'application/json; charset=utf-8',
+                  'set-cookie': 'PHPSESSID=12345'
+                },
+              ));
+
+      await tester.pumpWidget(MaterialApp(home: LoginScreen()));
+
+      // Verify that the loading indicator is shown
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Wait for the API call to complete
+      await tester.pumpAndSettle();
+
+      // Verify that the captcha question is displayed
+      expect(find.text('2 + 3 = ?'), findsOneWidget);
+    });
   });
 }
