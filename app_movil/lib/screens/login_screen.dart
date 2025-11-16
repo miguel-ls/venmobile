@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/screens/home_screen.dart';
 import 'package:app_movil/services/auth_service.dart';
@@ -20,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _captchaController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
-  Uint8List? _captcha;
+  String? _captchaQuestion;
 
   @override
   void initState() {
@@ -39,7 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _fetchCaptcha() async {
     try {
       final headers = {
-        'Accept': 'image/png',
         if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
       };
       final response = await http.get(
@@ -48,8 +46,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (response.statusCode == 200) {
         _updateCookie(response);
+        final data = json.decode(response.body);
         setState(() {
-          _captcha = response.bodyBytes;
+          _captchaQuestion = data['question'];
         });
       }
     } catch (e) {
@@ -160,9 +159,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        child: _captcha != null
-                            ? Image.memory(_captcha!, gaplessPlayback: true)
-                            : const Center(child: CircularProgressIndicator()),
+                        child: Center(
+                          child: _captchaQuestion != null
+                              ? Text(
+                                  _captchaQuestion!,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                )
+                              : const CircularProgressIndicator(),
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh),
