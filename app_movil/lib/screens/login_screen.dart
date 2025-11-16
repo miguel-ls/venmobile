@@ -39,6 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _fetchCaptcha() async {
     try {
       final headers = {
+        'Accept': 'image/png',
         if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
       };
       final response = await http.get(
