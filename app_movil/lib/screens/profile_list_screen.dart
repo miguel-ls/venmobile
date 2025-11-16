@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ProfileListScreen extends StatefulWidget {
+  const ProfileListScreen({super.key});
+
   @override
   _ProfileListScreenState createState() => _ProfileListScreenState();
 }

@@ -3,6 +3,8 @@ import 'package:app_movil/screens/user_list_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,10 +16,10 @@ class HomeScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              child: Text('Menú'),
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
+              child: Text('Menú'),
             ),
             ListTile(
               title: Text('Inicio'),

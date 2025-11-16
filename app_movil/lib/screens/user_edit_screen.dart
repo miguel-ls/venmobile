@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 class UserEditScreen extends StatefulWidget {
   final User? user;
 
-  UserEditScreen({this.user});
+  const UserEditScreen({super.key, this.user});
 
   @override
   _UserEditScreenState createState() => _UserEditScreenState();
@@ -103,7 +103,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return CircularProgressIndicator();
                   return DropdownButtonFormField<int>(
-                    value: _selectedProfileId,
+                    initialValue: _selectedProfileId,
                     items: snapshot.data!.map((profile) {
                       return DropdownMenuItem<int>(
                         value: profile.id,

@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 class ProfileEditScreen extends StatefulWidget {
   final Profile? profile;
 
-  ProfileEditScreen({this.profile});
+  const ProfileEditScreen({super.key, this.profile});
 
   @override
   _ProfileEditScreenState createState() => _ProfileEditScreenState();
