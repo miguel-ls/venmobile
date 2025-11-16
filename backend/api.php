@@ -1,0 +1,141 @@
+<?php
+require_once 'db.php';
+
+session_start();
+
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+$method = $_SERVER['REQUEST_METHOD'];
+
+if ($method === 'OPTIONS') { http_response_code(200); exit(); }
+
+$path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/';
+$request = explode('/', trim($path, '/'));
+
+try {
+    $pdo = getDbConnection();
+    $resource = array_shift($request);
+    $id = array_shift($request);
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    switch ($resource) {
+        case 'captcha': handle_captcha($method); break;
+        case 'login': handle_login($pdo, $method, $input); break;
+        case 'users': handle_users($pdo, $method, $id, $input); break;
+        case 'profiles': handle_profiles($pdo, $method, $id, $input); break;
+        default: http_response_code(404); echo json_encode(['message' => 'Not Found']); break;
+    }
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['message' => 'Server Error: ' . $e->getMessage()]);
+}
+
+function is_authenticated() {
+    return isset($_SESSION['user_id']);
+}
+
+function handle_captcha($method) {
+    if ($method == 'GET') {
+        $captcha_code = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 5);
+        $_SESSION['captcha'] = $captcha_code;
+        echo json_encode(['captcha' => $captcha_code]);
+    } else {
+        http_response_code(405);
+    }
+}
+
+function handle_login($pdo, $method, $input) {
+    if ($method == 'POST') {
+        if (!isset($input['captcha'], $_SESSION['captcha']) || strtolower($input['captcha']) != strtolower($_SESSION['captcha'])) {
+            http_response_code(401);
+            echo json_encode(['status' => 'error', 'message' => 'CAPTCHA incorrecto']);
+            return;
+        }
+        $stmt = $pdo->prepare("CALL sp_get_user_by_username(?)");
+        $stmt->execute([$input['username']]);
+        $user = $stmt->fetch();
+        if ($user && password_verify($input['password'], $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            unset($user['password']);
+            echo json_encode(['status' => 'success', 'user' => $user]);
+        } else {
+            http_response_code(401);
+            echo json_encode(['status' => 'error', 'message' => 'Credenciales inválidas']);
+        }
+    } else {
+        http_response_code(405);
+    }
+}
+
+function handle_users($pdo, $method, $id, $input) {
+    if (!is_authenticated()) {
+        http_response_code(401);
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
+    switch ($method) {
+        case 'GET':
+            $stmt = $id ? $pdo->prepare("CALL sp_get_user_by_id(?)") : $pdo->prepare("CALL sp_get_users()");
+            $id ? $stmt->execute([$id]) : $stmt->execute();
+            echo json_encode($id ? $stmt->fetch() : $stmt->fetchAll());
+            break;
+        case 'POST':
+            $hash = password_hash($input['password'], PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("CALL sp_create_user(?, ?, ?, ?)");
+            $stmt->execute([$input['username'], $hash, $input['email'], $input['profile_id']]);
+            http_response_code(201);
+            echo json_encode($stmt->fetch());
+            break;
+        case 'PUT':
+            $stmt = $pdo->prepare("CALL sp_update_user(?, ?, ?, ?)");
+            $stmt->execute([$id, $input['username'], $input['email'], $input['profile_id']]);
+            echo json_encode(['status' => 'success']);
+            break;
+        case 'DELETE':
+            $stmt = $pdo->prepare("CALL sp_delete_user(?)");
+            $stmt->execute([$id]);
+            echo json_encode(['status' => 'success']);
+            break;
+        default:
+            http_response_code(405);
+            break;
+    }
+}
+
+function handle_profiles($pdo, $method, $id, $input) {
+    if (!is_authenticated()) {
+        http_response_code(401);
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
+    switch ($method) {
+        case 'GET':
+            $stmt = $id ? $pdo->prepare("CALL sp_get_profile_by_id(?)") : $pdo->prepare("CALL sp_get_profiles()");
+            $id ? $stmt->execute([$id]) : $stmt->execute();
+            echo json_encode($id ? $stmt->fetch() : $stmt->fetchAll());
+            break;
+        case 'POST':
+            $stmt = $pdo->prepare("CALL sp_create_profile(?)");
+            $stmt->execute([$input['name']]);
+            http_response_code(201);
+            echo json_encode($stmt->fetch());
+            break;
+        case 'PUT':
+            $stmt = $pdo->prepare("CALL sp_update_profile(?, ?)");
+            $stmt->execute([$id, $input['name']]);
+            echo json_encode(['status' => 'success']);
+            break;
+        case 'DELETE':
+            $stmt = $pdo->prepare("CALL sp_delete_profile(?)");
+            $stmt->execute([$id]);
+            echo json_encode(['status' => 'success']);
+            break;
+        default:
+            http_response_code(405);
+            break;
+    }
+}
+?>
