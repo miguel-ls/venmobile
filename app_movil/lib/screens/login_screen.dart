@@ -1,12 +1,10 @@
+import 'dart:convert';
 import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -18,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _captchaController = TextEditingController();
   bool _isLoading = false;
   String _captcha = '';
+  String? _sessionCookie; // Variable para guardar la cookie de sesión
 
   @override
   void initState() {
@@ -25,17 +24,30 @@ class _LoginScreenState extends State<LoginScreen> {
     _fetchCaptcha();
   }
 
+  // Función para extraer la cookie de la cabecera
+  void _updateCookie(http.Response response) {
+    String? rawCookie = response.headers['set-cookie'];
+    if (rawCookie != null) {
+      // Extraemos la parte relevante de la cookie (antes del primer ';')
+      int index = rawCookie.indexOf(';');
+      _sessionCookie = (index == -1) ? rawCookie : rawCookie.substring(0, index);
+    }
+  }
+
   Future<void> _fetchCaptcha() async {
     try {
       final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/captcha'));
       if (response.statusCode == 200) {
+        // Guardamos la cookie de la respuesta
+        _updateCookie(response);
+        
         final responseData = json.decode(response.body);
         setState(() {
           _captcha = responseData['captcha'];
         });
       }
     } catch (e) {
-      // Manejar error de carga del CAPTCHA
+      _showErrorDialog('No se pudo cargar el CAPTCHA. Revisa la conexión con el servidor.');
     }
   }
 
@@ -44,10 +56,17 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     final url = Uri.parse('${ApiConfig.baseUrl}/login');
+    
+    // Preparamos las cabeceras para enviar la cookie
+    final headers = {
+      'Content-Type': 'application/json',
+      if (_sessionCookie != null) 'Cookie': _sessionCookie!,
+    };
+
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: headers, // Enviamos las cabeceras con la cookie
         body: json.encode({
           'username': _usernameController.text,
           'password': _passwordController.text,
@@ -55,12 +74,17 @@ class _LoginScreenState extends State<LoginScreen> {
         }),
       );
 
+      // La sesión puede actualizarse, así que guardamos la cookie de nuevo
+      _updateCookie(response);
+
       final responseData = json.decode(response.body);
       if (response.statusCode == 200 && responseData['status'] == 'success') {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
       } else {
         _showErrorDialog(responseData['message'] ?? 'Error desconocido');
-        _fetchCaptcha(); // Recargar CAPTCHA en caso de error
+        // Si el login falla, obtenemos un nuevo CAPTCHA (y una nueva sesión)
+        _fetchCaptcha();
+        _captchaController.clear();
       }
     } catch (e) {
       _showErrorDialog('Error de conexión.');
@@ -82,6 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // El resto del método build se mantiene igual
     return Scaffold(
       appBar: AppBar(title: Text('Login')),
       body: Padding(
@@ -116,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 100,
                     height: 50,
                     color: Colors.grey[300],
-                    child: Center(child: Text(_captcha.isEmpty ? '...' : _captcha)),
+                    child: Center(child: Text(_captcha.isEmpty ? '...' : _captcha, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
                   ),
                   IconButton(
                     icon: Icon(Icons.refresh),
