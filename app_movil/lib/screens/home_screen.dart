@@ -9,7 +9,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inicio'),
+        title: const Text('Inicio'),
       ),
       drawer: Drawer(
         child: ListView(
@@ -17,52 +17,71 @@ class HomeScreen extends StatelessWidget {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              child: Text('Menú'),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FlutterLogo(size: 40.0), // Logo
+                  SizedBox(height: 10),
+                  Text(
+                    'Menú Principal',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                ],
+              ),
             ),
             ListTile(
-              title: Text('Inicio'),
+              leading: const Icon(Icons.home),
+              title: const Text('Inicio'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ExpansionTile(
-              title: Text('Seguridad'),
+              leading: const Icon(Icons.security),
+              title: const Text('Seguridad'),
               children: <Widget>[
                 ListTile(
-                  title: Text('Perfil'),
+                  leading: const Icon(Icons.person),
+                  title: const Text('Perfil'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ProfileListScreen()),
+                      MaterialPageRoute(builder: (context) => const ProfileListScreen()),
                     );
                   },
                 ),
                 ListTile(
-                  title: Text('Usuarios'),
+                  leading: const Icon(Icons.group),
+                  title: const Text('Usuarios'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => UserListScreen()),
+                      MaterialPageRoute(builder: (context) => const UserListScreen()),
                     );
                   },
                 ),
               ],
             ),
+            const Divider(),
             ListTile(
-              title: Text('Cerrar sesión'),
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text('Cerrar sesión'),
               onTap: () {
-                Navigator.pop(context); // Cierra el drawer
-                Navigator.pop(context); // Vuelve a la pantalla de login
+                Navigator.pushReplacementNamed(context, '/login');
               },
             ),
           ],
         ),
       ),
-      body: Center(
+      body: const Center(
         child: Text('Pantalla de Inicio'),
       ),
     );
