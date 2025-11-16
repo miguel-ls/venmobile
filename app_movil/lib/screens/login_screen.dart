@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/screens/home_screen.dart';
 import 'package:app_movil/services/auth_service.dart';
@@ -19,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _captchaController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
-  String _captcha = '';
+  Uint8List? _captcha;
 
   @override
   void initState() {
@@ -46,9 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (response.statusCode == 200) {
         _updateCookie(response);
-        final responseData = json.decode(response.body);
         setState(() {
-          _captcha = responseData['captcha'];
+          _captcha = response.bodyBytes;
         });
       }
     } catch (e) {
@@ -153,15 +153,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(width: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        width: 120,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        child: Text(
-                          _captcha.isEmpty ? '...' : _captcha,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
+                        child: _captcha != null
+                            ? Image.memory(_captcha!, gaplessPlayback: true)
+                            : const Center(child: CircularProgressIndicator()),
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh),
