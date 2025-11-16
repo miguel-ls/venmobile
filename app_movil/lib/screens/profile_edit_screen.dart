@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/models/profile.dart';
+import 'package:app_movil/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -10,12 +11,14 @@ class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key, this.profile});
 
   @override
-  _ProfileEditScreenState createState() => _ProfileEditScreenState();
+  _ProfileEditScreenState createState() => _ProfileEditScree
+nState();
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  final _authService = AuthService();
 
   @override
   void initState() {
@@ -30,10 +33,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           : Uri.parse('${ApiConfig.baseUrl}/profiles/${widget.profile!.id}');
 
       final body = {'name': _nameController.text};
+      final headers = {
+        'Content-Type': 'application/json',
+        if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
+      };
 
       final response = await (widget.profile == null
-          ? http.post(url, headers: {'Content-Type': 'application/json'}, body: json.encode(body))
-          : http.put(url, headers: {'Content-Type': 'application/json'}, body: json.encode(body)));
+          ? http.post(url, headers: headers, body: json.encode(body))
+          : http.put(url, headers: headers, body: json.encode(body)));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         Navigator.pop(context);
@@ -54,16 +61,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nombre del Perfil'),
+                decoration: const InputDecoration(labelText: 'Nombre del Perfil'),
                 validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: _saveProfile,
-                child: Text('Guardar'),
+                child: const Text('Guardar'),
               ),
             ],
           ),

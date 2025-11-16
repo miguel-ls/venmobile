@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/models/profile.dart';
 import 'package:app_movil/screens/profile_edit_screen.dart';
+import 'package:app_movil/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,6 +15,7 @@ class ProfileListScreen extends StatefulWidget {
 
 class _ProfileListScreenState extends State<ProfileListScreen> {
   late Future<List<Profile>> _profilesFuture;
+  final _authService = AuthService();
 
   @override
   void initState() {
@@ -22,7 +24,14 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
   }
 
   Future<List<Profile>> _fetchProfiles() async {
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/profiles'));
+    final headers = {
+      'Content-Type': 'application/json',
+      if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
+    };
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/profiles'),
+      headers: headers,
+    );
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
@@ -33,7 +42,14 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
   }
 
   Future<void> _deleteProfile(int id) async {
-    final response = await http.delete(Uri.parse('${ApiConfig.baseUrl}/profiles/$id'));
+    final headers = {
+      'Content-Type': 'application/json',
+      if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
+    };
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/profiles/$id'),
+      headers: headers,
+    );
 
     if (response.statusCode == 200) {
       setState(() {
@@ -48,14 +64,14 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Perfiles'),
+        title: const Text('Perfiles'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: () async {
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProfileEditScreen()),
+                MaterialPageRoute(builder: (context) => const ProfileEditScreen()),
               );
               setState(() {
                 _profilesFuture = _fetchProfiles();
@@ -68,11 +84,11 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
         future: _profilesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No hay perfiles'));
+            return const Center(child: Text('No hay perfiles'));
           } else {
             return ListView.builder(
               itemCount: snapshot.data!.length,
@@ -84,7 +100,7 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.edit),
+                        icon: const Icon(Icons.edit),
                         onPressed: () async {
                           await Navigator.push(
                             context,
@@ -96,7 +112,7 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         onPressed: () => _deleteProfile(profile.id),
                       ),
                     ],
