@@ -37,7 +37,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _fetchCaptcha() async {
     try {
-      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/captcha'));
+      final headers = {
+        'Content-Type': 'application/json',
+        if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
+      };
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/captcha'),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
         _updateCookie(response);
         final responseData = json.decode(response.body);
