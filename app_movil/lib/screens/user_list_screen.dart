@@ -91,32 +91,38 @@ class _UserListScreenState extends State<UserListScreen> {
             return const Center(child: Text('No hay usuarios'));
           } else {
             return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final user = snapshot.data![index];
-                return ListTile(
-                  title: Text(user.username),
-                  subtitle: Text(user.email),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => UserEditScreen(user: user)),
-                          );
-                          setState(() {
-                            _usersFuture = _fetchUsers();
-                          });
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteUser(user.id),
-                      ),
-                    ],
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    title: Text(user.username, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(user.email),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => UserEditScreen(user: user)),
+                            );
+                            setState(() {
+                              _usersFuture = _fetchUsers();
+                            });
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteUser(user.id),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

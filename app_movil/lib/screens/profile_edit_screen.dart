@@ -57,22 +57,42 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nombre del Perfil'),
-                validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
+        child: Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nombre del Perfil',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Campo requerido' : null,
+                  ),
+                  const SizedBox(height: 24.0),
+                  ElevatedButton(
+                    onPressed: _saveProfile,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text('Guardar'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24.0),
-              ElevatedButton(
-                onPressed: _saveProfile,
-                child: const Text('Guardar'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

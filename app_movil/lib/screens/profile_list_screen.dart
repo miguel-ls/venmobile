@@ -91,31 +91,37 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
             return const Center(child: Text('No hay perfiles'));
           } else {
             return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final profile = snapshot.data![index];
-                return ListTile(
-                  title: Text(profile.name),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ProfileEditScreen(profile: profile)),
-                          );
-                          setState(() {
-                            _profilesFuture = _fetchProfiles();
-                          });
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteProfile(profile.id),
-                      ),
-                    ],
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    title: Text(profile.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => ProfileEditScreen(profile: profile)),
+                            );
+                            setState(() {
+                              _profilesFuture = _fetchProfiles();
+                            });
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteProfile(profile.id),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
