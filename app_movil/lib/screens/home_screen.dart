@@ -1,5 +1,6 @@
 import 'package:app_movil/screens/profile_list_screen.dart';
 import 'package:app_movil/screens/user_list_screen.dart';
+import 'package:app_movil/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -7,6 +8,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = AuthService();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio'),
@@ -75,6 +77,7 @@ class HomeScreen extends StatelessWidget {
               leading: const Icon(Icons.exit_to_app),
               title: const Text('Cerrar sesión'),
               onTap: () {
+                authService.clearSessionCookie();
                 Navigator.pushReplacementNamed(context, '/login');
               },
             ),

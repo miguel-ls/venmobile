@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/screens/home_screen.dart';
+import 'package:app_movil/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,9 +17,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _captchaController = TextEditingController();
+  final _authService = AuthService();
   bool _isLoading = false;
   String _captcha = '';
-  String? _sessionCookie;
 
   @override
   void initState() {
@@ -30,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String? rawCookie = response.headers['set-cookie'];
     if (rawCookie != null) {
       int index = rawCookie.indexOf(';');
-      _sessionCookie = (index == -1) ? rawCookie : rawCookie.substring(0, index);
+      _authService.setSessionCookie((index == -1) ? rawCookie : rawCookie.substring(0, index));
     }
   }
 
@@ -56,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final url = Uri.parse('${ApiConfig.baseUrl}/login');
     final headers = {
       'Content-Type': 'application/json',
-      if (_sessionCookie != null) 'Cookie': _sessionCookie!,
+      if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
     };
 
     try {
@@ -111,7 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  // Aquí irá el logo
                   const FlutterLogo(size: 100.0),
                   const SizedBox(height: 48.0),
                   TextFormField(

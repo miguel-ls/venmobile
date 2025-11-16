@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:app_movil/config/api_config.dart';
 import 'package:app_movil/models/user.dart';
 import 'package:app_movil/screens/user_edit_screen.dart';
+import 'package:app_movil/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,6 +15,7 @@ class UserListScreen extends StatefulWidget {
 
 class _UserListScreenState extends State<UserListScreen> {
   late Future<List<User>> _usersFuture;
+  final _authService = AuthService();
 
   @override
   void initState() {
@@ -22,7 +24,14 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   Future<List<User>> _fetchUsers() async {
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/users'));
+    final headers = {
+      'Content-Type': 'application/json',
+      if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
+    };
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/users'),
+      headers: headers,
+    );
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
@@ -33,7 +42,14 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   Future<void> _deleteUser(int id) async {
-    final response = await http.delete(Uri.parse('${ApiConfig.baseUrl}/users/$id'));
+    final headers = {
+      'Content-Type': 'application/json',
+      if (_authService.sessionCookie != null) 'Cookie': _authService.sessionCookie!,
+    };
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/users/$id'),
+      headers: headers,
+    );
 
     if (response.statusCode == 200) {
       setState(() {
@@ -48,14 +64,14 @@ class _UserListScreenState extends State<UserListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Usuarios'),
+        title: const Text('Usuarios'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: () async {
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => UserEditScreen()),
+                MaterialPageRoute(builder: (context) => const UserEditScreen()),
               );
               setState(() {
                 _usersFuture = _fetchUsers();
@@ -68,11 +84,11 @@ class _UserListScreenState extends State<UserListScreen> {
         future: _usersFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No hay usuarios'));
+            return const Center(child: Text('No hay usuarios'));
           } else {
             return ListView.builder(
               itemCount: snapshot.data!.length,
@@ -85,7 +101,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.edit),
+                        icon: const Icon(Icons.edit),
                         onPressed: () async {
                           await Navigator.push(
                             context,
@@ -97,7 +113,7 @@ class _UserListScreenState extends State<UserListScreen> {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         onPressed: () => _deleteUser(user.id),
                       ),
                     ],
