@@ -1,110 +1,478 @@
--- Creación de la tabla de usuarios
+
+-- 
+-- Set SQL mode
+-- 
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+
+-- 
+-- Set character set the client will use to send SQL statements to the server
+--
+SET NAMES 'utf8';
+
+--
+-- Set default database
+--
+USE app_movil_db;
+
+--
+-- Drop procedure `sp_create_profile`
+--
+DROP PROCEDURE IF EXISTS sp_create_profile;
+
+--
+-- Drop procedure `sp_delete_profile`
+--
+DROP PROCEDURE IF EXISTS sp_delete_profile;
+
+--
+-- Drop procedure `sp_get_profile_by_id`
+--
+DROP PROCEDURE IF EXISTS sp_get_profile_by_id;
+
+--
+-- Drop procedure `sp_get_profiles`
+--
+DROP PROCEDURE IF EXISTS sp_get_profiles;
+
+--
+-- Drop procedure `sp_update_profile`
+--
+DROP PROCEDURE IF EXISTS sp_update_profile;
+
+--
+-- Drop table `profiles`
+--
+DROP TABLE IF EXISTS profiles;
+
+--
+-- Drop procedure `sp_create_tipo_cambio`
+--
+DROP PROCEDURE IF EXISTS sp_create_tipo_cambio;
+
+--
+-- Drop procedure `sp_delete_tipo_cambio`
+--
+DROP PROCEDURE IF EXISTS sp_delete_tipo_cambio;
+
+--
+-- Drop procedure `sp_get_tipo_cambio_by_id`
+--
+DROP PROCEDURE IF EXISTS sp_get_tipo_cambio_by_id;
+
+--
+-- Drop procedure `sp_get_tipo_cambio_by_year_month`
+--
+DROP PROCEDURE IF EXISTS sp_get_tipo_cambio_by_year_month;
+
+--
+-- Drop procedure `sp_update_tipo_cambio`
+--
+DROP PROCEDURE IF EXISTS sp_update_tipo_cambio;
+
+--
+-- Drop table `tipo_cambio`
+--
+DROP TABLE IF EXISTS tipo_cambio;
+
+--
+-- Drop procedure `sp_create_user`
+--
+DROP PROCEDURE IF EXISTS sp_create_user;
+
+--
+-- Drop procedure `sp_delete_user`
+--
+DROP PROCEDURE IF EXISTS sp_delete_user;
+
+--
+-- Drop procedure `sp_get_user_by_id`
+--
+DROP PROCEDURE IF EXISTS sp_get_user_by_id;
+
+--
+-- Drop procedure `sp_get_user_by_username`
+--
+DROP PROCEDURE IF EXISTS sp_get_user_by_username;
+
+--
+-- Drop procedure `sp_get_users`
+--
+DROP PROCEDURE IF EXISTS sp_get_users;
+
+--
+-- Drop procedure `sp_update_user`
+--
+DROP PROCEDURE IF EXISTS sp_update_user;
+
+--
+-- Drop table `users`
+--
+DROP TABLE IF EXISTS users;
+
+--
+-- Set default database
+--
+USE app_movil_db;
+
+--
+-- Create table `users`
+--
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL, -- Para almacenar la contraseña hasheada
-    email VARCHAR(100) NOT NULL UNIQUE,
-    profile_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  id int(11) NOT NULL AUTO_INCREMENT,
+  username varchar(50) NOT NULL,
+  password varchar(255) NOT NULL,
+  email varchar(100) NOT NULL,
+  profile_id int(11) NOT NULL,
+  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (id)
+)
+ENGINE = INNODB,
+AUTO_INCREMENT = 6,
+AVG_ROW_LENGTH = 8192,
+CHARACTER SET utf8mb4,
+COLLATE utf8mb4_general_ci,
+ROW_FORMAT = DYNAMIC;
 
--- Creación de la tabla de perfiles
+--
+-- Create index `username` on table `users`
+--
+ALTER TABLE users
+ADD UNIQUE INDEX username (username);
+
+--
+-- Create index `email` on table `users`
+--
+ALTER TABLE users
+ADD UNIQUE INDEX email (email);
+
+DELIMITER $$
+
+--
+-- Create procedure `sp_update_user`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_update_user (IN p_user_id int, IN p_username varchar(50), IN p_email varchar(100), IN p_profile_id int)
+BEGIN
+  UPDATE users
+  SET username = p_username,
+      email = p_email,
+      profile_id = p_profile_id
+  WHERE id = p_user_id;
+END
+$$
+
+--
+-- Create procedure `sp_get_users`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_get_users ()
+BEGIN
+  SELECT
+    id,
+    username,
+    email,
+    profile_id
+  FROM users;
+END
+$$
+
+--
+-- Create procedure `sp_get_user_by_username`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_get_user_by_username (IN p_username varchar(50))
+BEGIN
+  SELECT
+    id,
+    username,
+    password,
+    profile_id
+  FROM users
+  WHERE username = p_username;
+END
+$$
+
+--
+-- Create procedure `sp_get_user_by_id`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_get_user_by_id (IN p_user_id int)
+BEGIN
+  SELECT
+    id,
+    username,
+    email,
+    profile_id
+  FROM users
+  WHERE id = p_user_id;
+END
+$$
+
+--
+-- Create procedure `sp_delete_user`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_delete_user (IN p_user_id int)
+BEGIN
+  DELETE
+    FROM users
+  WHERE id = p_user_id;
+END
+$$
+
+--
+-- Create procedure `sp_create_user`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_create_user (IN p_username varchar(50), IN p_password_hash varchar(255), IN p_email varchar(100), IN p_profile_id int)
+BEGIN
+  INSERT INTO users (username, password, email, profile_id)
+    VALUES (p_username, p_password_hash, p_email, p_profile_id);
+  SELECT
+    LAST_INSERT_ID() AS id;
+END
+$$
+
+DELIMITER ;
+
+--
+-- Create table `tipo_cambio`
+--
+CREATE TABLE tipo_cambio (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  fecha datetime NOT NULL,
+  compra decimal(14, 3) NOT NULL,
+  venta decimal(14, 3) NOT NULL,
+  moneda char(3) NOT NULL,
+  PRIMARY KEY (id)
+)
+ENGINE = INNODB,
+AUTO_INCREMENT = 10,
+AVG_ROW_LENGTH = 2048,
+CHARACTER SET utf8mb4,
+COLLATE utf8mb4_general_ci,
+ROW_FORMAT = DYNAMIC;
+
+DELIMITER $$
+
+--
+-- Create procedure `sp_update_tipo_cambio`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_update_tipo_cambio (IN p_id int,
+IN p_fecha datetime,
+IN p_compra decimal(14, 3),
+IN p_venta decimal(14, 3),
+IN p_moneda char(3))
+BEGIN
+  UPDATE tipo_cambio
+  SET fecha = p_fecha,
+      compra = p_compra,
+      venta = p_venta,
+      moneda = p_moneda
+  WHERE id = p_id;
+END
+$$
+
+--
+-- Create procedure `sp_get_tipo_cambio_by_year_month`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_get_tipo_cambio_by_year_month (IN p_year int, IN p_month int)
+BEGIN
+  SELECT
+    *
+  FROM tipo_cambio
+  WHERE YEAR(fecha) = p_year
+  AND MONTH(fecha) = p_month;
+END
+$$
+
+--
+-- Create procedure `sp_get_tipo_cambio_by_id`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_get_tipo_cambio_by_id (IN p_id int)
+BEGIN
+  SELECT
+    *
+  FROM tipo_cambio
+  WHERE id = p_id;
+END
+$$
+
+--
+-- Create procedure `sp_delete_tipo_cambio`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_delete_tipo_cambio (IN p_id int)
+BEGIN
+  DELETE
+    FROM tipo_cambio
+  WHERE id = p_id;
+END
+$$
+
+--
+-- Create procedure `sp_create_tipo_cambio`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_create_tipo_cambio (IN p_fecha datetime,
+IN p_compra decimal(14, 3),
+IN p_venta decimal(14, 3),
+IN p_moneda char(3))
+BEGIN
+  INSERT INTO tipo_cambio (fecha, compra, venta, moneda)
+    VALUES (p_fecha, p_compra, p_venta, p_moneda);
+  SELECT
+    *
+  FROM tipo_cambio
+  WHERE id = LAST_INSERT_ID();
+END
+$$
+
+DELIMITER ;
+
+--
+-- Create table `profiles`
+--
 CREATE TABLE profiles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  id int(11) NOT NULL AUTO_INCREMENT,
+  name varchar(50) NOT NULL,
+  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (id)
+)
+ENGINE = INNODB,
+AUTO_INCREMENT = 3,
+AVG_ROW_LENGTH = 8192,
+CHARACTER SET utf8mb4,
+COLLATE utf8mb4_general_ci,
+ROW_FORMAT = DYNAMIC;
 
--- --- PROCEDIMIENTOS ALMACENADOS PARA USUARIOS ---
+--
+-- Create index `name` on table `profiles`
+--
+ALTER TABLE profiles
+ADD UNIQUE INDEX name (name);
 
--- Login (obtiene el usuario por su nombre de usuario)
 DELIMITER $$
-CREATE PROCEDURE sp_get_user_by_username(IN p_username VARCHAR(50))
+
+--
+-- Create procedure `sp_update_profile`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_update_profile (IN p_profile_id int, IN p_name varchar(50))
 BEGIN
-    SELECT id, username, password, profile_id FROM users WHERE username = p_username;
-END$$
+  UPDATE profiles
+  SET name = p_name
+  WHERE id = p_profile_id;
+END
+$$
+
+--
+-- Create procedure `sp_get_profiles`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_get_profiles ()
+BEGIN
+  SELECT
+    id,
+    name
+  FROM profiles;
+END
+$$
+
+--
+-- Create procedure `sp_get_profile_by_id`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_get_profile_by_id (IN p_profile_id int)
+BEGIN
+  SELECT
+    id,
+    name
+  FROM profiles
+  WHERE id = p_profile_id;
+END
+$$
+
+--
+-- Create procedure `sp_delete_profile`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_delete_profile (IN p_profile_id int)
+BEGIN
+  DELETE
+    FROM profiles
+  WHERE id = p_profile_id;
+END
+$$
+
+--
+-- Create procedure `sp_create_profile`
+--
+CREATE
+DEFINER = 'miguel'@'%'
+PROCEDURE sp_create_profile (IN p_name varchar(50))
+BEGIN
+  INSERT INTO profiles (name)
+    VALUES (p_name);
+  SELECT
+    LAST_INSERT_ID() AS id;
+END
+$$
+
 DELIMITER ;
 
--- Obtener todos los usuarios
-DELIMITER $$
-CREATE PROCEDURE sp_get_users()
-BEGIN
-    SELECT id, username, email, profile_id FROM users;
-END$$
-DELIMITER ;
+-- 
+-- Dumping data for table users
+--
+INSERT INTO users VALUES
+(4, 'admin', '$2y$10$tvL40E0szcP6tdYaimUTvedDDgnxfBMnqeWl7Ysk4hD.wufDFu57S', 'admin@example.com', 1, '2025-11-15 21:43:24'),
+(5, 'user', '$2y$10$tvL40E0szcP6tdYaimUTvedDDgnxfBMnqeWl7Ysk4hD.wufDFu57S', 'user@example.com', 2, '2025-11-15 23:49:59');
 
--- Obtener un usuario por ID
-DELIMITER $$
-CREATE PROCEDURE sp_get_user_by_id(IN p_user_id INT)
-BEGIN
-    SELECT id, username, email, profile_id FROM users WHERE id = p_user_id;
-END$$
-DELIMITER ;
+-- 
+-- Dumping data for table tipo_cambio
+--
+INSERT INTO tipo_cambio VALUES
+(1, '2025-11-16 00:00:00', 3.150, 3.160, 'USD'),
+(2, '2025-11-16 00:00:00', 3.150, 3.160, 'USD'),
+(3, '2025-11-14 00:00:00', 3.150, 3.160, 'USD'),
+(4, '2025-11-14 00:00:00', 3.150, 3.160, 'USD'),
+(5, '2025-11-14 00:00:00', 3.150, 3.160, 'USD'),
+(6, '2025-11-14 00:00:00', 3.150, 3.160, 'USD'),
+(7, '2025-11-14 00:00:00', 3.150, 3.160, 'USD'),
+(8, '2025-11-14 00:00:00', 3.150, 3.160, 'USD'),
+(9, '2025-11-14 00:00:00', 3.150, 3.160, 'USD');
 
--- Crear un usuario
-DELIMITER $$
-CREATE PROCEDURE sp_create_user(IN p_username VARCHAR(50), IN p_password_hash VARCHAR(255), IN p_email VARCHAR(100), IN p_profile_id INT)
-BEGIN
-    INSERT INTO users (username, password, email, profile_id) VALUES (p_username, p_password_hash, p_email, p_profile_id);
-    SELECT LAST_INSERT_ID() as id;
-END$$
-DELIMITER ;
+-- 
+-- Dumping data for table profiles
+--
+INSERT INTO profiles VALUES
+(1, 'Administrador', '2025-11-15 20:57:02'),
+(2, 'Usuario', '2025-11-15 20:57:02');
 
--- Actualizar un usuario
-DELIMITER $$
-CREATE PROCEDURE sp_update_user(IN p_user_id INT, IN p_username VARCHAR(50), IN p_email VARCHAR(100), IN p_profile_id INT)
-BEGIN
-    UPDATE users SET username = p_username, email = p_email, profile_id = p_profile_id WHERE id = p_user_id;
-END$$
-DELIMITER ;
+-- 
+-- Restore previous SQL mode
+-- 
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 
--- Eliminar un usuario
-DELIMITER $$
-CREATE PROCEDURE sp_delete_user(IN p_user_id INT)
-BEGIN
-    DELETE FROM users WHERE id = p_user_id;
-END$$
-DELIMITER ;
-
--- --- PROCEDIMIENTOS ALMACENADOS PARA PERFILES ---
-
--- Obtener todos los perfiles
-DELIMITER $$
-CREATE PROCEDURE sp_get_profiles()
-BEGIN
-    SELECT id, name FROM profiles;
-END$$
-DELIMITER ;
-
--- Obtener un perfil por ID
-DELIMITER $$
-CREATE PROCEDURE sp_get_profile_by_id(IN p_profile_id INT)
-BEGIN
-    SELECT id, name FROM profiles WHERE id = p_profile_id;
-END$$
-DELIMITER ;
-
--- Crear un perfil
-DELIMITER $$
-CREATE PROCEDURE sp_create_profile(IN p_name VARCHAR(50))
-BEGIN
-    INSERT INTO profiles (name) VALUES (p_name);
-    SELECT LAST_INSERT_ID() as id;
-END$$
-DELIMITER ;
-
--- Actualizar un perfil
-DELIMITER $$
-CREATE PROCEDURE sp_update_profile(IN p_profile_id INT, IN p_name VARCHAR(50))
-BEGIN
-    UPDATE profiles SET name = p_name WHERE id = p_profile_id;
-END$$
-DELIMITER ;
-
--- Eliminar un perfil
-DELIMITER $$
-CREATE PROCEDURE sp_delete_profile(IN p_profile_id INT)
-BEGIN
-    DELETE FROM profiles WHERE id = p_profile_id;
-END$$
-DELIMITER ;
+-- 
+-- Enable foreign keys
+-- 
+/*!40014 SET FOREIGN_KEY_CHECKS = @OLD_FOREIGN_KEY_CHECKS */;
