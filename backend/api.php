@@ -205,7 +205,7 @@ function handle_sunat_tipo_cambio($method) {
         curl_setopt($ch, CURLOPT_URL, "https://api.apis.net.pe/v1/tipo-cambio-sunat?fecha=$fecha");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Authorization: Bearer ' . SUNAT_API_TOKEN
+            'Authorization: Bearer ' . 'apis-token-1.aTSI1U7KEuT-6bbbCguH-4Y8TI6KS73N'
         ));
 
         $response = curl_exec($ch);
