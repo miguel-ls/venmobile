@@ -14,8 +14,6 @@ class ClientesScreen extends StatefulWidget {
 class _ClientesScreenState extends State<ClientesScreen> {
   final ClienteService _clienteService = ClienteService();
   late Future<List<Cliente>> _clientesFuture;
-  List<Cliente> _clientes = [];
-  List<Cliente> _filteredClientes = [];
 
   final TextEditingController _docController = TextEditingController();
   final TextEditingController _nombreController = TextEditingController();
@@ -26,42 +24,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadClientes();
-  }
-
-  void _loadClientes() {
     _clientesFuture = _clienteService.getClientes();
-    _clientesFuture.then((clientes) {
-      setState(() {
-        _clientes = clientes;
-        _filteredClientes = clientes;
-      });
-    });
   }
 
-  void _filterClientes() {
+  void _refreshClientes() {
     setState(() {
-      _filteredClientes = _clientes.where((cliente) {
-        final docMatch = cliente.numeroDocumento
-            .toLowerCase()
-            .contains(_docController.text.toLowerCase());
-        final nombreMatch = cliente.nombresApellidos
-            .toLowerCase()
-            .contains(_nombreController.text.toLowerCase());
-        final emailMatch = (cliente.email ?? '')
-            .toLowerCase()
-            .contains(_emailController.text.toLowerCase());
-        final telefonoMatch = (cliente.telefono ?? '')
-            .toLowerCase()
-            .contains(_telefonoController.text.toLowerCase());
-        final estadoMatch = _estadoFilter == 'Todos' ||
-            cliente.estado.toLowerCase() == _estadoFilter!.toLowerCase();
-        return docMatch &&
-            nombreMatch &&
-            emailMatch &&
-            telefonoMatch &&
-            estadoMatch;
-      }).toList();
+      _clientesFuture = _clienteService.getClientes();
     });
   }
 
@@ -81,7 +49,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                       builder: (context) => const ClienteEditScreen()),
                 );
                 if (result == true) {
-                  _loadClientes();
+                  _refreshClientes();
                 }
               },
               child: const Text('Nuevo Cliente'),
@@ -122,7 +90,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
-                onChanged: (value) => _filterClientes(),
+                onChanged: (value) => setState(() {}),
               ),
             ),
             SizedBox(
@@ -134,7 +102,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
-                onChanged: (value) => _filterClientes(),
+                onChanged: (value) => setState(() {}),
               ),
             ),
             SizedBox(
@@ -146,7 +114,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
-                onChanged: (value) => _filterClientes(),
+                onChanged: (value) => setState(() {}),
               ),
             ),
             SizedBox(
@@ -158,7 +126,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
-                onChanged: (value) => _filterClientes(),
+                onChanged: (value) => setState(() {}),
               ),
             ),
             SizedBox(
@@ -166,7 +134,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
               child: DropdownButtonFormField<String>(
                 value: _estadoFilter,
                 decoration: const InputDecoration(
-                  labelText: 'Todos los Estad',
+                  labelText: 'Todos los Estados',
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
@@ -179,7 +147,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 onChanged: (value) {
                   setState(() {
                     _estadoFilter = value;
-                    _filterClientes();
                   });
                 },
               ),
@@ -201,6 +168,29 @@ class _ClientesScreenState extends State<ClientesScreen> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No se encontraron clientes.'));
         } else {
+          final clientes = snapshot.data!;
+          final filteredClientes = clientes.where((cliente) {
+            final docMatch = cliente.numeroDocumento
+                .toLowerCase()
+                .contains(_docController.text.toLowerCase());
+            final nombreMatch = cliente.nombresApellidos
+                .toLowerCase()
+                .contains(_nombreController.text.toLowerCase());
+            final emailMatch = (cliente.email ?? '')
+                .toLowerCase()
+                .contains(_emailController.text.toLowerCase());
+            final telefonoMatch = (cliente.telefono ?? '')
+                .toLowerCase()
+                .contains(_telefonoController.text.toLowerCase());
+            final estadoMatch = _estadoFilter == 'Todos' ||
+                cliente.estado.toLowerCase() == _estadoFilter!.toLowerCase();
+            return docMatch &&
+                nombreMatch &&
+                emailMatch &&
+                telefonoMatch &&
+                estadoMatch;
+          }).toList();
+
           return Card(
             elevation: 4,
             shape:
@@ -218,7 +208,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   DataColumn(label: Text('Estado')),
                   DataColumn(label: Text('Acciones')),
                 ],
-                rows: _filteredClientes.map((cliente) {
+                rows: filteredClientes.map((cliente) {
                   return DataRow(
                     cells: [
                       DataCell(Text(cliente.tipoDocumento ?? '')),
@@ -254,7 +244,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                   ),
                                 );
                                 if (result == true) {
-                                  _loadClientes();
+                                  _refreshClientes();
                                 }
                               },
                               child: const Text('Editar'),
@@ -301,7 +291,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 try {
                   await _clienteService.deleteCliente(cliente.id);
                   Navigator.of(context).pop();
-                  _loadClientes();
+                  _refreshClientes();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                         content: Text('Cliente eliminado correctamente')),
