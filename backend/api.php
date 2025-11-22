@@ -27,7 +27,7 @@ try {
         case 'users': handle_users($pdo, $method, $id, $input); break;
         case 'profiles': handle_profiles($pdo, $method, $id, $input); break;
         case 'clientes': handle_clientes($pdo, $method, $id, $input); break;
-        case 'tipos_documento_identidad': handle_tipos_documento_identidad($pdo, $method); break;
+        case 'tipos_documento_identidad': handle_tipos_documento_identidad($pdo, $method, $id, $input); break;
         case 'tipo_cambio': handle_tipo_cambio($pdo, $method, $id, $input); break;
         case 'sunat_tipo_cambio': handle_sunat_tipo_cambio($method); break;
         default:
@@ -59,7 +59,7 @@ function handle_captcha($method) {
     }
 }
 
-function handle_tipos_documento_identidad($pdo, $method) {
+function handle_tipos_documento_identidad($pdo, $method, $id, $input) {
     header("Content-Type: application/json; charset=UTF-8");
     if (!is_authenticated()) {
         http_response_code(401);
