@@ -99,11 +99,13 @@ $$
 CREATE PROCEDURE sp_get_cliente_by_id(IN p_id int)
 BEGIN
 SELECT
-  *
+  c.*,
+  t.nombre AS tipo_documento
 FROM
-  clientes
+  clientes c
+  JOIN tipo_documento_identidad t ON c.id_tipo_documento_identidad = t.id
 WHERE
-  id = p_id;
+  c.id = p_id;
 END
 $$
 
@@ -114,10 +116,12 @@ CREATE PROCEDURE sp_get_clientes()
 BEGIN
 SELECT
   c.id,
+  c.id_tipo_documento_identidad,
   t.nombre AS tipo_documento,
   c.numero_documento,
   c.nombres_apellidos,
   c.direccion,
+  c.codigo_ubigeo,
   c.email,
   c.telefono,
   c.estado
@@ -145,6 +149,21 @@ SET
   estado = p_estado
 WHERE
   id = p_id;
+END
+$$
+
+--
+-- Create procedure `sp_get_tipos_documento_identidad`
+--
+CREATE PROCEDURE sp_get_tipos_documento_identidad()
+BEGIN
+SELECT
+  id,
+  nombre
+FROM
+  tipo_documento_identidad
+WHERE
+  estado = 1;
 END
 $$
 

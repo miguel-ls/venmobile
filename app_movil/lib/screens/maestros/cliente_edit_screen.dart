@@ -1,5 +1,7 @@
 import 'package:app_movil/models/cliente.dart';
+import 'package:app_movil/models/tipo_documento_identidad.dart';
 import 'package:app_movil/services/cliente_service.dart';
+import 'package:app_movil/services/tipo_documento_identidad_service.dart';
 import 'package:flutter/material.dart';
 
 class ClienteEditScreen extends StatefulWidget {
@@ -14,6 +16,7 @@ class ClienteEditScreen extends StatefulWidget {
 class _ClienteEditScreenState extends State<ClienteEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _clienteService = ClienteService();
+  final _tipoDocumentoIdentidadService = TipoDocumentoIdentidadService();
 
   late TextEditingController _numeroDocumentoController;
   late TextEditingController _nombresApellidosController;
@@ -25,16 +28,13 @@ class _ClienteEditScreenState extends State<ClienteEditScreen> {
   int? _selectedTipoDocumento;
   String? _selectedEstado;
   bool _isLoading = false;
-
-  // Hardcoded for now, should be fetched from an endpoint
-  final List<Map<String, dynamic>> _tiposDocumento = [
-    {'id': 1, 'nombre': 'DNI'},
-    {'id': 2, 'nombre': 'RUC'},
-  ];
+  late Future<List<TipoDocumentoIdentidad>> _tiposDocumentoFuture;
 
   @override
   void initState() {
     super.initState();
+    _tiposDocumentoFuture =
+        _tipoDocumentoIdentidadService.getTiposDocumentoIdentidad();
     _numeroDocumentoController =
         TextEditingController(text: widget.cliente?.numeroDocumento ?? '');
     _nombresApellidosController =
@@ -177,25 +177,40 @@ class _ClienteEditScreenState extends State<ClienteEditScreen> {
   }
 
   Widget _buildDropdownTipoDocumento() {
-    return DropdownButtonFormField<int>(
-      value: _selectedTipoDocumento,
-      decoration: const InputDecoration(
-        labelText: 'Tipo de Documento',
-        border: OutlineInputBorder(),
-      ),
-      items: _tiposDocumento.map((tipo) {
-        return DropdownMenuItem<int>(
-          value: tipo['id'],
-          child: Text(tipo['nombre']),
+    return FutureBuilder<List<TipoDocumentoIdentidad>>(
+      future: _tiposDocumentoFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Text('No se encontraron tipos de documento');
+        }
+
+        final tiposDocumento = snapshot.data!;
+        return DropdownButtonFormField<int>(
+          value: _selectedTipoDocumento,
+          decoration: const InputDecoration(
+            labelText: 'Tipo de Documento',
+            border: OutlineInputBorder(),
+          ),
+          items: tiposDocumento.map((tipo) {
+            return DropdownMenuItem<int>(
+              value: tipo.id,
+              child: Text(tipo.nombre),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedTipoDocumento = value;
+            });
+          },
+          validator: (value) => value == null
+              ? 'Por favor seleccione un tipo de documento'
+              : null,
         );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedTipoDocumento = value;
-        });
       },
-      validator: (value) =>
-          value == null ? 'Por favor seleccione un tipo de documento' : null,
     );
   }
 

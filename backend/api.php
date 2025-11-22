@@ -27,6 +27,7 @@ try {
         case 'users': handle_users($pdo, $method, $id, $input); break;
         case 'profiles': handle_profiles($pdo, $method, $id, $input); break;
         case 'clientes': handle_clientes($pdo, $method, $id, $input); break;
+        case 'tipos_documento_identidad': handle_tipos_documento_identidad($pdo, $method); break;
         case 'tipo_cambio': handle_tipo_cambio($pdo, $method, $id, $input); break;
         case 'sunat_tipo_cambio': handle_sunat_tipo_cambio($method); break;
         default:
@@ -58,6 +59,26 @@ function handle_captcha($method) {
     }
 }
 
+function handle_tipos_documento_identidad($pdo, $method) {
+    header("Content-Type: application/json; charset=UTF-8");
+    if (!is_authenticated()) {
+        http_response_code(401);
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
+    switch ($method) {
+        case 'GET':
+            $stmt = $pdo->prepare("CALL sp_get_tipos_documento_identidad()");
+            $stmt->execute();
+            $tipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($tipos);
+            break;
+        default:
+            http_response_code(405);
+            break;
+    }
+}
+
 function handle_clientes($pdo, $method, $id, $input) {
     header("Content-Type: application/json; charset=UTF-8");
     if (!is_authenticated()) {
@@ -67,15 +88,35 @@ function handle_clientes($pdo, $method, $id, $input) {
     }
     switch ($method) {
         case 'GET':
-            $stmt = $id ? $pdo->prepare("CALL sp_get_cliente_by_id(?)") : $pdo->prepare("CALL sp_get_clientes()");
-            $id ? $stmt->execute([$id]) : $stmt->execute();
-            echo json_encode($id ? $stmt->fetch() : $stmt->fetchAll());
+            if ($id) {
+                $stmt = $pdo->prepare("CALL sp_get_cliente_by_id(?)");
+                $stmt->execute([$id]);
+                $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($cliente) {
+                    echo json_encode($cliente);
+                } else {
+                    http_response_code(404);
+                    echo json_encode(['message' => 'Cliente not found']);
+                }
+            } else {
+                $stmt = $pdo->prepare("CALL sp_get_clientes()");
+                $stmt->execute();
+                $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($clientes);
+            }
             break;
         case 'POST':
             $stmt = $pdo->prepare("CALL sp_create_cliente(?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$input['id_tipo_documento_identidad'], $input['numero_documento'], $input['nombres_apellidos'], $input['direccion'], $input['codigo_ubigeo'], $input['email'], $input['telefono']]);
+            $newClienteId = $stmt->fetchColumn();
+            $stmt->closeCursor();
+
+            $stmt = $pdo->prepare("CALL sp_get_cliente_by_id(?)");
+            $stmt->execute([$newClienteId]);
+            $newCliente = $stmt->fetch(PDO::FETCH_ASSOC);
+
             http_response_code(201);
-            echo json_encode($stmt->fetch());
+            echo json_encode($newCliente);
             break;
         case 'PUT':
             $stmt = $pdo->prepare("CALL sp_update_cliente(?, ?, ?, ?, ?, ?, ?, ?, ?)");
