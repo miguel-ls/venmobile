@@ -1,8 +1,8 @@
 class TipoCambio {
   final int? id;
   final String fecha;
-  final double compra;
-  final double venta;
+  final String compra;
+  final String venta;
   final String moneda;
 
   TipoCambio({this.id, required this.fecha, required this.compra, required this.venta, required this.moneda});
@@ -11,8 +11,8 @@ class TipoCambio {
     return TipoCambio(
       id: json['id'],
       fecha: json['fecha'],
-      compra: json['compra'].toDouble(),
-      venta: json['venta'].toDouble(),
+      compra: json['compra'],
+      venta: json['venta'],
       moneda: json['moneda'],
     );
   }

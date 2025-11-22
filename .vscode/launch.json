@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
         {
             "name": "app_movil",
             "cwd": "app_movil",
@@ -24,6 +23,27 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
+        },
+        /* =========================
+           🔥 DEPURACIÓN PHP BACKEND
+           ========================= */
+        {
+            "name": "Debug PHP Backend",
+            "type": "php",
+            "request": "launch",
+            "port": 9003,
+            "pathMappings": {
+                "C:\\xampp\\htdocs\\personal\\venmobile": "${workspaceFolder}"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Flutter & PHP",
+            "configurations": [
+                "app_movil",
+                "Debug PHP Backend"
+            ]
         }
     ]
 }

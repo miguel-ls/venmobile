@@ -76,8 +76,8 @@ class _TipoCambioFormScreenState extends State<TipoCambioFormScreen> {
       final tipoCambio = TipoCambio(
         id: widget.tipoCambio?.id,
         fecha: _fechaController.text,
-        compra: double.parse(_compraController.text),
-        venta: double.parse(_ventaController.text),
+        compra: _compraController.text,
+        venta: _ventaController.text,
         moneda: _monedaController.text,
       );
 
