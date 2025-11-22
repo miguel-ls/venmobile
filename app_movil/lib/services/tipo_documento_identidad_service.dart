@@ -11,7 +11,7 @@ final String _baseUrl = '${ApiConfig.baseUrl}/tipos_documento_identidad';
   Future<List<TipoDocumentoIdentidad>> getTiposDocumentoIdentidad() async {
 
     final response = await http.get(
-      Uri.parse('$_baseUrl/tipos_documento_identidad'),
+      Uri.parse(_baseUrl),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': _authService.sessionCookie ?? '',
