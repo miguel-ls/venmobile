@@ -26,6 +26,7 @@ try {
         case 'login': handle_login($pdo, $method, $input); break;
         case 'users': handle_users($pdo, $method, $id, $input); break;
         case 'profiles': handle_profiles($pdo, $method, $id, $input); break;
+        case 'clientes': handle_clientes($pdo, $method, $id, $input); break;
         case 'tipo_cambio': handle_tipo_cambio($pdo, $method, $id, $input); break;
         case 'sunat_tipo_cambio': handle_sunat_tipo_cambio($method); break;
         default:
@@ -54,6 +55,41 @@ function handle_captcha($method) {
         echo json_encode(['question' => "$num1 + $num2 = ?"]);
     } else {
         http_response_code(405);
+    }
+}
+
+function handle_clientes($pdo, $method, $id, $input) {
+    header("Content-Type: application/json; charset=UTF-8");
+    if (!is_authenticated()) {
+        http_response_code(401);
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
+    switch ($method) {
+        case 'GET':
+            $stmt = $id ? $pdo->prepare("CALL sp_get_cliente_by_id(?)") : $pdo->prepare("CALL sp_get_clientes()");
+            $id ? $stmt->execute([$id]) : $stmt->execute();
+            echo json_encode($id ? $stmt->fetch() : $stmt->fetchAll());
+            break;
+        case 'POST':
+            $stmt = $pdo->prepare("CALL sp_create_cliente(?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$input['id_tipo_documento_identidad'], $input['numero_documento'], $input['nombres_apellidos'], $input['direccion'], $input['codigo_ubigeo'], $input['email'], $input['telefono']]);
+            http_response_code(201);
+            echo json_encode($stmt->fetch());
+            break;
+        case 'PUT':
+            $stmt = $pdo->prepare("CALL sp_update_cliente(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$id, $input['id_tipo_documento_identidad'], $input['numero_documento'], $input['nombres_apellidos'], $input['direccion'], $input['codigo_ubigeo'], $input['email'], $input['telefono'], $input['estado']]);
+            echo json_encode(['status' => 'success']);
+            break;
+        case 'DELETE':
+            $stmt = $pdo->prepare("CALL sp_delete_cliente(?)");
+            $stmt->execute([$id]);
+            echo json_encode(['status' => 'success']);
+            break;
+        default:
+            http_response_code(405);
+            break;
     }
 }
 
