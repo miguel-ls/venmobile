@@ -10,7 +10,7 @@ class ClienteService {
 
   Future<List<Cliente>> getClientes() async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/clientes'),
+      Uri.parse('$_baseUrl'),
       headers: {
         'Content-Type': 'application/json',
         'Cookie': _authService.sessionCookie ?? ''},
