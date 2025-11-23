@@ -189,8 +189,14 @@ class _ClienteEditScreenState extends State<ClienteEditScreen> {
         }
 
         final tiposDocumento = snapshot.data!;
+        final validIds = tiposDocumento.map((tipo) => tipo.id).toList();
+        final int? dropdownValue =
+            (_selectedTipoDocumento != null && validIds.contains(_selectedTipoDocumento))
+                ? _selectedTipoDocumento
+                : null;
+
         return DropdownButtonFormField<int>(
-          value: _selectedTipoDocumento,
+          value: dropdownValue,
           decoration: const InputDecoration(
             labelText: 'Tipo de Documento',
             border: OutlineInputBorder(),
