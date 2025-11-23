@@ -191,79 +191,100 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 estadoMatch;
           }).toList();
 
-          return Card(
-            elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Tipo Doc.')),
-                  DataColumn(label: Text('N° Documento')),
-                  DataColumn(label: Text('Nombres y Apellidos')),
-                  DataColumn(label: Text('Dirección')),
-                  DataColumn(label: Text('Email')),
-                  DataColumn(label: Text('Teléfono')),
-                  DataColumn(label: Text('Estado')),
-                  DataColumn(label: Text('Acciones')),
-                ],
-                rows: filteredClientes.map((cliente) {
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(cliente.tipoDocumento ?? '')),
-                      DataCell(Text(cliente.numeroDocumento)),
-                      DataCell(Text(cliente.nombresApellidos)),
-                      DataCell(Text(cliente.direccion ?? '')),
-                      DataCell(Text(cliente.email ?? '')),
-                      DataCell(Text(cliente.telefono ?? '')),
-                      DataCell(
-                        Chip(
-                          label: Text(
-                            cliente.estado,
-                            style: const TextStyle(color: Colors.white),
+          return ListView.builder(
+            itemCount: filteredClientes.length,
+            itemBuilder: (context, index) {
+              final cliente = filteredClientes[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              cliente.nombresApellidos,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          backgroundColor: cliente.estado == 'Activado'
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+                          Chip(
+                            label: Text(
+                              cliente.estado,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: cliente.estado == 'Activado'
+                                ? Colors.green
+                                : Colors.red,
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          ),
+                        ],
                       ),
-                      DataCell(
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.yellow),
-                              onPressed: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ClienteEditScreen(
-                                      cliente: cliente,
-                                    ),
-                                  ),
-                                );
-                                if (result == true) {
-                                  _refreshClientes();
-                                }
-                              },
-                              child: const Text('Editar'),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red),
-                              onPressed: () => _deleteCliente(context, cliente),
-                              child: const Text('Eliminar'),
-                            ),
-                          ],
+                      const SizedBox(height: 8),
+                      Text(
+                        '${cliente.tipoDocumento ?? 'N/A'}: ${cliente.numeroDocumento}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      if (cliente.email != null && cliente.email!.isNotEmpty) ...[
+                        Text(
+                          'Email: ${cliente.email}',
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
+                        const SizedBox(height: 4),
+                      ],
+                      if (cliente.telefono != null && cliente.telefono!.isNotEmpty) ...[
+                        Text(
+                          'Teléfono: ${cliente.telefono}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      const Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ClienteEditScreen(
+                                    cliente: cliente,
+                                  ),
+                                ),
+                              );
+                              if (result == true) {
+                                _refreshClientes();
+                              }
+                            },
+                            tooltip: 'Editar',
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteCliente(context, cliente),
+                            tooltip: 'Eliminar',
+                          ),
+                        ],
                       ),
                     ],
-                  );
-                }).toList(),
-              ),
-            ),
+                  ),
+                ),
+              );
+            },
           );
         }
       },
