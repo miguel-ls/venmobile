@@ -103,7 +103,9 @@ class _ClienteEditScreenState extends State<ClienteEditScreen> {
               content: Text(
                   'Cliente ${widget.cliente == null ? 'creado' : 'actualizado'} con éxito')),
         );
-        Navigator.pop(context, true); // Return true to indicate success
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al guardar cliente: $e')),
