@@ -39,21 +39,19 @@ class _ClientesScreenState extends State<ClientesScreen> {
       appBar: AppBar(
         title: const Text('Catálogo de Clientes'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ClienteEditScreen()),
-                );
-                if (result == true) {
-                  _refreshClientes();
-                }
-              },
-              child: const Text('Nuevo Cliente'),
-            ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Nuevo Cliente',
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ClienteEditScreen()),
+              );
+              if (result == true) {
+                _refreshClientes();
+              }
+            },
           ),
         ],
       ),
