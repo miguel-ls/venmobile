@@ -40,9 +40,9 @@ class ClienteService {
     }
   }
 
-  Future<Cliente> createCliente(Cliente cliente) async {
+  Future<void> createCliente(Cliente cliente) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/clientes'),
+      Uri.parse(_baseUrl),
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
         'Cookie': _authService.sessionCookie ?? ''
@@ -50,9 +50,7 @@ class ClienteService {
       body: json.encode(cliente.toJson()),
     );
 
-    if (response.statusCode == 201) {
-      return Cliente.fromJson(json.decode(response.body));
-    } else {
+    if (response.statusCode != 201) {
       throw Exception('Failed to create cliente');
     }
   }
