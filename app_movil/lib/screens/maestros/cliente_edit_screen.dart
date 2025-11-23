@@ -33,8 +33,22 @@ class _ClienteEditScreenState extends State<ClienteEditScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedTipoDocumento = widget.cliente?.idTipoDocumentoIdentidad;
+    _selectedEstado = widget.cliente?.estado ?? 'Activado';
+
     _tiposDocumentoFuture =
         _tipoDocumentoIdentidadService.getTiposDocumentoIdentidad();
+    _tiposDocumentoFuture.then((tipos) {
+      if (_selectedTipoDocumento != null &&
+          !tipos.any((tipo) => tipo.id == _selectedTipoDocumento)) {
+        if (mounted) {
+          setState(() {
+            _selectedTipoDocumento = null;
+          });
+        }
+      }
+    });
+
     _numeroDocumentoController =
         TextEditingController(text: widget.cliente?.numeroDocumento ?? '');
     _nombresApellidosController =
@@ -46,9 +60,6 @@ class _ClienteEditScreenState extends State<ClienteEditScreen> {
     _emailController = TextEditingController(text: widget.cliente?.email ?? '');
     _telefonoController =
         TextEditingController(text: widget.cliente?.telefono ?? '');
-
-    _selectedTipoDocumento = widget.cliente?.idTipoDocumentoIdentidad;
-    _selectedEstado = widget.cliente?.estado ?? 'Activado';
   }
 
   @override
@@ -189,14 +200,9 @@ class _ClienteEditScreenState extends State<ClienteEditScreen> {
         }
 
         final tiposDocumento = snapshot.data!;
-        final validIds = tiposDocumento.map((tipo) => tipo.id).toList();
-        final int? dropdownValue =
-            (_selectedTipoDocumento != null && validIds.contains(_selectedTipoDocumento))
-                ? _selectedTipoDocumento
-                : null;
 
         return DropdownButtonFormField<int>(
-          value: dropdownValue,
+          value: _selectedTipoDocumento,
           decoration: const InputDecoration(
             labelText: 'Tipo de Documento',
             border: OutlineInputBorder(),
